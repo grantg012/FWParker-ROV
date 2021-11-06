@@ -1,5 +1,4 @@
 import serial
-import pygame
 
 
 arduino_port = serial.Serial(port = 'COM4', baudrate = 115200, timeout = 0.1)
