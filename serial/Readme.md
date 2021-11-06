@@ -22,3 +22,9 @@ import serial
 import pygame
 ```
 
+
+
+
+### Other Resources
+* [Serial Communication with Python and an Arduino (better)](https://pythonforundergradengineers.com/python-arduino-LED.html)
+* [Serial Communication with Python and an Arduino](https://create.arduino.cc/projecthub/ansh2919/serial-communication-between-python-and-arduino-e7cce0)
