@@ -28,3 +28,5 @@ import pygame
 ### Other Resources
 * [Serial Communication with Python and an Arduino (better)](https://pythonforundergradengineers.com/python-arduino-LED.html)
 * [Serial Communication with Python and an Arduino](https://create.arduino.cc/projecthub/ansh2919/serial-communication-between-python-and-arduino-e7cce0)
+* [Finding the right serial port](https://www.mathworks.com/help/supportpkg/arduinoio/ug/find-arduino-port-on-windows-mac-and-linux.html)
+* [Possible fix for if the serial port isn't working](https://askubuntu.com/questions/1056314/uploading-code-to-arduino-gives-me-the-error-avrdude-ser-open-cant-open-d)

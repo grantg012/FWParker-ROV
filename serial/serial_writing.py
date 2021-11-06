@@ -1,7 +1,7 @@
 import serial
 
 
-arduino_port = serial.Serial(port = 'COM4', baudrate = 115200, timeout = 0.1)
+arduino_port = serial.Serial(port = '/dev/ttyACM0', baudrate = 9600, timeout = 0.1)
 
 
 def write_read(message: bytes):

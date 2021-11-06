@@ -3,7 +3,7 @@ import serial
 import time
 
 
-arduino_port = serial.Serial(port = 'COM4', baudrate = 115200, timeout = 0.1)
+arduino_port = serial.Serial(port = '/dev/ttyACM0', baudrate = 9600, timeout = 0.1)
 
 pygame.init()
 
@@ -22,6 +22,7 @@ def write_read(message: bytes):
 
 
 # -------- Main Program Loop -----------
+state = False
 while True:
     #
     # EVENT PROCESSING STEP
@@ -29,12 +30,13 @@ while True:
     # Possible joystick actions: JOYAXISMOTION, JOYBALLMOTION, JOYBUTTONDOWN,
     # JOYBUTTONUP, JOYHATMOTION
     for event in pygame.event.get(): # User did something.
-        print(event)
+        # print(event)
         if event.type == pygame.QUIT: # If user clicked close.
             done = True # Flag that we are done so we exit this loop.
         elif event.type == pygame.JOYBUTTONDOWN:
             print("Joystick button pressed.")
-            write_read(b'P')
+            write_read(b'H' if state else b'L')
+            state = not state
         elif event.type == pygame.JOYBUTTONUP:
             print("Joystick button released.")
     time.sleep(0.01)
