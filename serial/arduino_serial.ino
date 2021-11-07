@@ -31,7 +31,7 @@ void setup() {
     pinMode(ledPin, OUTPUT);
 }
 
-Servo our_thrusters = {Servo(), Servo()};
+// Servo our_thrusters = {Servo(), Servo()};
 
 void loop() {
     // see if there's incoming serial data:
