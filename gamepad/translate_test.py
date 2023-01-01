@@ -44,6 +44,11 @@ class TranslateTest(unittest.TestCase):
             (0.5, -1, 1, 1400, 1600, 1550),
             (-0.5, -1, 1, 1600, 1400, 1550),
             (0.5, -1, 1, 1600, 1400, 1450),
+            (0, -1, 1, 1600, 1400, 1500),
+            (0, -1, 1, 1400, 1600, 1500),
+            (1, -1, 1, 1400, 1600, 1600),
+            (-1, -1, 1, 1400, 1600, 1400),
+            (-0.99, -1, 1, 1400, 1600, 1401),
         ]
         for (v, lMin, lMax, rMin, rMax, exp) in cases:
             self.assertAlmostEqual(exp, translate(v, lMin, lMax, rMin, rMax))
