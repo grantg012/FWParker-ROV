@@ -1,12 +1,14 @@
-
+import atexit
+import re
 import socket
 import sys
 import tk
 import tkinter
 from tkinter import Image
 import threading
+from matplotlib.axes._axes import Axes
 from matplotlib.figure import Figure
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg 
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
 PORT = 7654  # Port to listen on (non-privileged ports are > 1023)
@@ -14,26 +16,44 @@ PORT = 7654  # Port to listen on (non-privileged ports are > 1023)
 g_last_command = {c: 1500 for c in "abcd"}
 LETTER_TO_X = dict(zip("abcdxy", range(1, 7)))
 
+LETTER_PATTERN = re.compile(r"[A-z]")
+
 g_socket = None
 
+@atexit.register
+def close_socket():
+    global g_socket
+    if g_socket is not None:
+        g_socket.close()
 
-def ui_process_data(plot, canvas: FigureCanvasTkAgg, data: bytes) -> None:
+
+def ui_process_data(plot: Axes, canvas: FigureCanvasTkAgg, data: bytes) -> None:
     """"""
     # Parse everything that's sent and our knowledge of the command
     global g_last_command
     while data:
-        value, letter = int(data[:4]), data.decode()[4]
-        g_last_command[letter] = value
-        data = data[5:]
+        dataStr = data.decode()
+        try:
+            letterIndex = LETTER_PATTERN.search(dataStr).start()
+            value, letter = int(dataStr[:letterIndex]), chr(data[letterIndex])
+            g_last_command[letter] = value
+            data = data[letterIndex + 1:]
+        except Exception as e:
+            print(e)
+            data = data[1:]
 
-
+    plot.cla() # Clear the plot
+    series = {}
     for letter, command in g_last_command.items():
         x = LETTER_TO_X[letter]
-        plot.plot([x, x], [1499, command])
+        serie = plot.plot([x, x], [1499, command])[0]
+        series[letter] = serie
 
+    # Legend
+    plot.legend(tuple(series.values()), tuple(series.keys()))
 
     plot.set_xlim([0, 7])
-    plot.set_ylim([1300, 1700])
+    plot.set_ylim([1380, 1620])
 
     canvas.draw()
 
@@ -75,10 +95,4 @@ def main(args: list) -> int:
 
 
 if __name__ == "__main__":
-    try:
-        returnValue = 1
-        returnValue = main(sys.argv[1:])
-    finally:
-        if g_socket:
-            g_socket.close()
-        sys.exit(returnValue)
+    sys.exit(main(sys.argv[1:]))
