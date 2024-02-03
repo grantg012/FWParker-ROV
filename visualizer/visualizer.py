@@ -92,8 +92,11 @@ def socketProcess(plot1, degree_plot, canvas: FigureCanvasTkAgg):
             with conn:
                 print(f"Connected by {addr}")
                 while True:
-                    data = conn.recv(1024)
-                    if not data:
+                    try:
+                        data = conn.recv(1024)
+                        if not data:
+                            break
+                    except ConnectionResetError:
                         break
                     ui_process_data(plot1, degree_plot, canvas, data)
 
