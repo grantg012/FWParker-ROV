@@ -14,11 +14,19 @@ HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
 PORT = 7654  # Port to listen on (non-privileged ports are > 1023)
 
 g_last_command = {c: 1500 for c in "abcd"}
-LETTER_TO_X = dict(zip("abcdxy", range(1, 7)))
+RX_NAMES = "abcdxyz"
+LETTER_TO_X = dict(zip(RX_NAMES, range(1, len(RX_NAMES) + 1)))
 
 LETTER_PATTERN = re.compile(r"[A-z]")
 
 g_socket = None
+
+MAP = {
+    "a": "up (front)",
+    "b": "down (back)",
+    "c": "forward (right)",
+    "d": "backwards (left)",
+}
 
 @atexit.register
 def close_socket():
@@ -27,7 +35,7 @@ def close_socket():
         g_socket.close()
 
 
-def ui_process_data(plot: Axes, canvas: FigureCanvasTkAgg, data: bytes) -> None:
+def ui_process_data(plot: Axes, degree_plot: Axes, canvas: FigureCanvasTkAgg, data: bytes) -> None:
     """"""
     # Parse everything that's sent and our knowledge of the command
     global g_last_command
@@ -43,35 +51,51 @@ def ui_process_data(plot: Axes, canvas: FigureCanvasTkAgg, data: bytes) -> None:
             data = data[1:]
 
     plot.cla() # Clear the plot
+    degree_plot.cla() # Clear the plot
+    
     series = {}
     for letter, command in g_last_command.items():
+        if letter not in LETTER_TO_X:
+            LETTER_TO_X[letter] = max(LETTER_TO_X.values()) + 1
         x = LETTER_TO_X[letter]
-        serie = plot.plot([x, x], [1499, command])[0]
-        series[letter] = serie
+        target_plot = plot
+        neutral = 1499
+        if 0 <= command <= 180: 
+            target_plot = degree_plot
+            neutral = 89
+        serie = target_plot.plot([x, x], [neutral, command])[0]
+        series_key = MAP[letter] if letter in MAP else letter
+        series[series_key] = serie
 
     # Legend
     plot.legend(tuple(series.values()), tuple(series.keys()))
 
-    plot.set_xlim([0, 7])
-    plot.set_ylim([1380, 1620])
+    plot.set_xlim([0, max(LETTER_TO_X.values()) + 1])
+    plot.set_ylim([1180, 1820])
+    plot.set_ylabel("Thruster pulse (us)")
+    degree_plot.yaxis.set_label_position("right")
+    degree_plot.set_ylim([0, 180])
+    degree_plot.set_ylabel("Servo degrees")
 
     canvas.draw()
 
-def socketProcess(plot1, canvas: FigureCanvasTkAgg):
+
+def socketProcess(plot1, degree_plot, canvas: FigureCanvasTkAgg):
     
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        global g_socket
-        g_socket = s
-        s.bind((HOST, PORT))
-        s.listen()
-        conn, addr = s.accept()
-        with conn:
-            print(f"Connected by {addr}")
-            while True:
-                data = conn.recv(1024)
-                if not data:
-                    break
-                ui_process_data(plot1, canvas, data)
+    while True:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            global g_socket
+            g_socket = s
+            s.bind((HOST, PORT))
+            s.listen()
+            conn, addr = s.accept()
+            with conn:
+                print(f"Connected by {addr}")
+                while True:
+                    data = conn.recv(1024)
+                    if not data:
+                        break
+                    ui_process_data(plot1, degree_plot, canvas, data)
 
 
 def main(args: list) -> int:
@@ -83,11 +107,12 @@ def main(args: list) -> int:
     window.geometry()
     fig = Figure(figsize = (5, 5), dpi = 100)
     plot1 = fig.add_subplot(111)
+    degree_plot = plot1.twinx()
     canvas = FigureCanvasTkAgg(fig, master = window)
     canvas.draw()
     canvas.get_tk_widget().pack()
 
-    socketThread = threading.Thread(target=socketProcess, args = (plot1, canvas), daemon=True)
+    socketThread = threading.Thread(target=socketProcess, args = (plot1, degree_plot, canvas), daemon=True)
     socketThread.start()
 
     window.mainloop()
