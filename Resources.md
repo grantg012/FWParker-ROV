@@ -18,5 +18,6 @@ v4l2-ctl -d /dev/video0 --list-formats
 v4l2-ctl -d /dev/video0 --list-formats-ext
 
 192.168.2.2:8080/stream_simple.html
+192.168.2.10:8080/?action=stream
 
 ```
